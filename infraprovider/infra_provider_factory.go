@@ -14,28 +14,26 @@
 
 package infraprovider
 
-import "github.com/harness/gitness/infraprovider/enum"
+import (
+	"fmt"
 
-type ParameterSchema struct {
-	Name         string
-	Description  string
-	DefaultValue string
-	Required     bool
-	Secret       bool
-	Editable     bool
+	"github.com/harness/gitness/infraprovider/enum"
+)
+
+type Factory struct {
+	providers map[enum.InfraProviderType]InfraProvider
 }
 
-type Parameter struct {
-	Name  string
-	Value string
+func NewFactory(dockerProvider *DockerProvider) Factory {
+	providers := make(map[enum.InfraProviderType]InfraProvider)
+	providers[enum.InfraProviderTypeDocker] = dockerProvider
+	return Factory{providers: providers}
 }
 
-type Infrastructure struct {
-	Identifier   string
-	ResourceKey  string
-	ProviderType enum.InfraProviderType
-	Parameters   []Parameter
-	Status       enum.InfraStatus
-	Host         string
-	Port         int
+func (f *Factory) GetInfraProvider(providerType enum.InfraProviderType) (InfraProvider, error) {
+	val := f.providers[providerType]
+	if val == nil {
+		return nil, fmt.Errorf("unknown infra provider type: %s", providerType)
+	}
+	return val, nil
 }

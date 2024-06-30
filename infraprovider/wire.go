@@ -14,28 +14,28 @@
 
 package infraprovider
 
-import "github.com/harness/gitness/infraprovider/enum"
+import (
+	"github.com/harness/gitness/types"
 
-type ParameterSchema struct {
-	Name         string
-	Description  string
-	DefaultValue string
-	Required     bool
-	Secret       bool
-	Editable     bool
+	"github.com/google/wire"
+)
+
+// WireSet provides a wire set for this package.
+var WireSet = wire.NewSet(
+	ProvideDockerProvider,
+	ProvideFactory,
+)
+
+func ProvideDockerProvider(config *types.Config) *DockerProvider {
+	dockerConfig := Config{
+		DockerHost:       config.Docker.Host,
+		DockerAPIVersion: config.Docker.APIVersion,
+		DockerCertPath:   config.Docker.CertPath,
+		DockerTLSVerify:  config.Docker.TLSVerify,
+	}
+	return NewDockerProvider(&dockerConfig)
 }
 
-type Parameter struct {
-	Name  string
-	Value string
-}
-
-type Infrastructure struct {
-	Identifier   string
-	ResourceKey  string
-	ProviderType enum.InfraProviderType
-	Parameters   []Parameter
-	Status       enum.InfraStatus
-	Host         string
-	Port         int
+func ProvideFactory(dockerProvider *DockerProvider) Factory {
+	return NewFactory(dockerProvider)
 }
